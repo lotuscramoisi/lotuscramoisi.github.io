@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fire_in_the_Base_Camp</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        .header {
+            background-color: #333;
+            padding: 10px;
+            text-align: center;
+        }
+        .header a {
+            color: #f0f0f0;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+        .header a:hover {
+            text-decoration: underline;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #2a2a2a;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            color: #e0e0e0;
+            font-family: 'Arial', sans-serif;
+        }
+      
+        .code-box {
+            background-color: #1a1a1a;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            margin: 15px 0;
+        }
+
+        .code-box pre {
+            margin: 0;
+            color: #cfcfcf;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1em;
+        }
+
+        .image-box {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .image-box img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        p {
+            line-height: 1.6;
+            font-size: 1.1em;
+            color: #d3d3d3; 
+        }
+        
+        h1, h2 {
+            color: #f0f0f0;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        ul li {
+            margin: 10px 0;
+        }
+        ul li a {
+            text-decoration: none;
+            color: #9cdbff;
+            font-size: 1.2rem;
+        }
+        ul li a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Lotus</h1>
+        <a href="../Crypto/index.html">Cryptography</a>
+        <a href="../Forensic/index.html">Forensics</a>
+        <a href="../Reverse/index.html">Reversing</a>
+    </div>
+    <div class="container">
+        <h1>Fire in the Base Camp</h1>
+
+        <p>The challenge began with an APK file that needed to be decompiled to retrieve key information hidden within the application. By using <code>apktool</code> to decompile the APK, we could explore the internal files and locate the Firebase URL hidden in the app's resources.</p>
+    
+        <p>After decompiling the APK using the following command:</p>
+        <pre><code>apktool d Fire_in_the_Base_Camp.apk</code></pre>
+    
+        <p>We found the <code>strings.xml</code> file, which contained several string values (fb1, fb2, fb3, fb4) used to construct the Firebase URL. I made a minimal java snippet to see the url constructed:</p>
+
+
+        <pre><code>
+            class HelloWorld {
+                public static void main(String[] args) {
+                    // String.xml
+                    String fb1 = "/is/this/the/flag";
+                    String fb2 = "/i/think/this/is/the/one";
+                    String fb3 = "/seriously/give/me/the/flag/now";
+                    String fb4 = "/please/give/it/to/me";
+        
+                    String path1 = fb4.substring(0, 7);    // "/please"
+                    String path2 = fb3.substring(10, 15);  // "give"
+                    String path3 = fb4.substring(18, 21);  // "it"
+                    String path4 = fb2.substring(16, 20);  // "this"
+                    String path5 = fb1.substring(12, 17);  // "flag"
+        
+                    // Constructing the full path
+                    String completePath = path1 + path2 + path3 + path4 + path5; 
+        
+                    // Base URL for Firebase
+                    String fburl = "https://app3-7d107-default-rtdb.firebaseio.com";
+        
+                    String fullURL = fburl + completePath + ".json";
+        
+                    System.out.println("Constructed Firebase URL: " + fullURL);
+                }
+            }
+            </code></pre>
+        <p>After calling the url:</p>
+            <pre><code>
+                {
+                    "f1": "ironCTF{",
+                    "f2": "y0u_pu",
+                    "f3": "7_0u7_t",
+                    "f4": "h3_f1",
+                    "f5": "r3_1n_t",
+                    "f6": "h3_b4s",
+                    "f7": "3_c4mp",
+                    "f8": "_1f84a5",
+                    "f9": "c66ff5}"
+                  }
+                </code></pre>
+                
+        <p>Combined all the element gives us the flag:</p>
+        
+        <div class="code-box">
+            <pre><code>
+                ironCTF{y0u_pu7_0u7_th3_f1r3_1n_th3_b4s3_c4mp_1f84a5c66ff5}</code></pre>
+        </div>
+    </div>
+</body>
+</html>
