@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forensic</title>
+    <title>Random Pixels</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -22,6 +22,10 @@
             text-decoration: none;
             margin: 0 15px;
         }
+        .header a:hover {
+            text-decoration: underline;
+        }
+
         .container {
             max-width: 1200px;
             margin: 20px auto;
@@ -58,11 +62,15 @@
         <a href="../Reverse/index.html">Reversing</a>
     </div>
     <div class="container">
-        <h1>Forensic Write-ups</h1>
-        <ul>
-            <li><a href="cubeSounds.html">CTFZone | Hardware | CubeSounds</a></li>
-            <li><a href="randomPixels.html">ironCTF | Forensic | RandomPixels</a></li>
-        </ul>
+        <h1>RandomPixels</h1>
+        <p>We can see that the seed used is seed(int(time.time()))</p>
+        <p>We need to find the time when the image was created in order to retrieve the original seed. 7z l chal.7z</p>
+        <img src="../assets/images/randomPixelsDate.jpg">
+        <p>With the date of the creation of the encrypted png we can find the epoch and solve the challenge</p>
+        <img src="../assets/images/randomPixelsQRCode.jpg">
+        <p>We get a QRCode once flashed it reveals the flag.</p>
+        <img src="../assets/images/randomPixelsSol.jpg">
+        <p>ironCTF{p53ud0_r4nd0m_f0r_4_r3450n}</p>
     </div>
 </body>
 </html>
