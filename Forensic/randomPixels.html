@@ -33,6 +33,41 @@
             background-color: #2a2a2a;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            color: #e0e0e0; 
+            font-family: 'Arial', sans-serif;
+        }
+
+        .code-box {
+            background-color: #1a1a1a; 
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            margin: 15px 0;
+        }
+
+        .code-box pre {
+            margin: 0;
+            color: #cfcfcf;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1em;
+        }
+
+        .image-box {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .image-box img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);  
+        }
+
+        p {
+            line-height: 1.6;
+            font-size: 1.1em;
+            color: #d3d3d3;
         }
         h1, h2 {
             color: #f0f0f0;
@@ -63,14 +98,40 @@
     </div>
     <div class="container">
         <h1>RandomPixels</h1>
-        <p>We can see that the seed used is seed(int(time.time()))</p>
-        <p>We need to find the time when the image was created in order to retrieve the original seed. 7z l chal.7z</p>
-        <img src="../assets/images/randomPixelsDate.jpg">
-        <p>With the date of the creation of the encrypted png we can find the epoch and solve the challenge</p>
-        <img src="../assets/images/randomPixelsQRCode.jpg">
-        <p>We get a QRCode once flashed it reveals the flag.</p>
-        <img src="../assets/images/randomPixelsSol.jpg">
-        <p>ironCTF{p53ud0_r4nd0m_f0r_4_r3450n}</p>
+        <p>We can see that the seed used is:</p>
+        
+        <!-- Highlighting the code in a box -->
+        <div class="code-box">
+            <pre><code>seed(int(time.time()))</code></pre>
+        </div>
+        
+        <p>We need to find the time when the image was created in order to retrieve the original seed:</p>
+        <div class="code-box">
+            <pre><code>7z l chal.7z</code></pre>
+        </div>
+        
+        <!-- Image with padding around it -->
+        <div class="image-box">
+            <img src="../assets/images/randomPixelsDate.JPG" alt="Random Pixels Date">
+        </div>
+    
+        <p>With the date of the creation of the encrypted PNG, we can find the epoch and solve the challenge.</p>
+    
+        <div class="image-box">
+            <img src="../assets/images/randomPixelsQRCode.JPG" alt="Random Pixels QRCode">
+        </div>
+    
+        <p>We get a QRCode, once scanned, it reveals the flag:</p>
+    
+        <div class="image-box">
+            <img src="../assets/images/randomPixelsSol.JPG" alt="Random Pixels Solution">
+        </div>
+    
+        <p>Flag: </p>
+        <div class="code-box">
+            <pre><code>ironCTF{p53ud0_r4nd0m_f0r_4_r3450n}</code></pre>
+        </div>
     </div>
+    
 </body>
 </html>
