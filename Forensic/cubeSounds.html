@@ -33,7 +33,43 @@
             background-color: #2a2a2a;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            color: #e0e0e0;
+            font-family: 'Arial', sans-serif;
         }
+      
+        .code-box {
+            background-color: #1a1a1a;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            margin: 15px 0;
+        }
+
+        .code-box pre {
+            margin: 0;
+            color: #cfcfcf;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1em;
+        }
+
+        .image-box {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .image-box img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        p {
+            line-height: 1.6;
+            font-size: 1.1em;
+            color: #d3d3d3; 
+        }
+        
         h1, h2 {
             color: #f0f0f0;
         }
@@ -63,12 +99,25 @@
     </div>
     <div class="container">
         <h1>CubeSounds</h1>
-        <p>After some research we can find that the .wav files are audios using SSTV Robot36, which is a mode used to transmit images over radio waves</p>
+        <p>After some research, we can find that the .wav files are audios using SSTV Robot36, which is a mode used to transmit images over radio waves.</p>
+        
         <p>I found an app on Android "Robot36" that can show the images using the audio.</p>
-        <img src="../assets/images/cubeSoundsFail.png" alt="Wrong order">
+        
+        <div class="image-box">
+            <img src="../assets/images/cubeSoundsFail.png" alt="Wrong order">
+        </div>
+        
         <p>The audios were sent in the wrong order, but we can easily change their order and read the flag written on the image.</p>
-        <img src="../assets/images/cubeSoundsSignalDetected.png" alt="Wrong order">
-        <p>Which give use the flag : "CTFZONE{Signal_Detected}</p>
+        
+        <div class="image-box">
+            <img src="../assets/images/cubeSoundsSignalDetected.png" alt="Signal Detected">
+        </div>
+        
+        <p>Which gives us the flag:</p>
+        
+        <div class="code-box">
+            <pre><code>CTFZONE{Signal_Detected}</code></pre>
+        </div>
     </div>
 </body>
 </html>
