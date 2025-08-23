@@ -1,106 +1,383 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>CTF Writeup Timeline (Hilbert Curve)</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CTF Writeups | Hasse Diagram</title>
+  <script src="assets/d3.min.js"></script>
   <style>
-    body { font-family: sans-serif; background: #111; color: #eee; }
-    #viz { display: grid; justify-content: center; margin: 2rem auto; }
-    .cell {
-      width: 22px; height: 22px;
-      margin: 1px;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
-    .cell:hover {
-      transform: scale(1.4);
-      z-index: 5;
-    }
-    .tooltip {
-      position: absolute;
-      background: #222; color: #fff;
-      padding: 4px 8px; border-radius: 6px;
-      font-size: 12px;
-      pointer-events: none;
-      opacity: 0; transition: opacity 0.2s;
-    }
+    :root{ --bg:#0e0f13; --fg:#e6e6e6; --muted:#9aa0a6; --accent:#7dd3fc; --edge:#3b4252; --node:#a78bfa; --badge:#1f2937; }
+    *{ box-sizing: border-box; }
+    html, body { height: 100%; }
+    body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial; background: var(--bg); color: var(--fg); }
+    header { padding: 16px 20px; border-bottom: 1px solid #1f2430; display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+    h1 { margin: 0; font-size: 20px; letter-spacing: .3px; }
+    .controls { display:flex; align-items:center; gap:40px; flex-wrap: wrap; }
+    .controls input, .controls select { background:#0b0c10; color:var(--fg); border:1px solid #2b3242; border-radius:8px; padding:8px 10px; }
+    .legend { display:flex; align-items:center; gap:10px; margin-left:auto; flex-wrap:wrap; }
+    .legend-item { display:flex; align-items:center; gap:6px; font-size:14px; color:var(--muted); }
+    .legend-swatch { width:12px; height:12px; border-radius:3px; }
+
+    #container { display:grid; grid-template-columns: 1fr 400px; gap: 8px; height: calc(100% - 62px); }
+    #vizwrap { position: relative; }
+    #viz { width: 100%; height: 100%; }
+    #sidebar { border-left:1px solid #1f2430; padding:12px; overflow:auto; }
+
+    .post{ padding:14px; border:1pxsolid#2b3242; border-radius:12px; margin-bottom:12px; background:#181b22; box-shadow:0 2px 6px rgba(0,0,0,0.35); transition:transform .15 sease;}
+    .post:hover { transform: translateY(-2px); }
+    .post h4 { margin:0 0 6px 0; font-size:14px; }
+    .post .meta { font-size:12px; color:var(--muted); display:flex; gap:8px; flex-wrap:wrap; }
+    .badge { font-size:11px; background:var(--badge); padding:2px 6px; border-radius:6px; border:1px solid #2b3242; }
+
+    .intent-label { margin-top: 16px; margin-bottom: 12px; margin-left: 12px; padding: 6px 10px; font-weight: 700; border-radius: 8px; display: inline-block; }
+
+    .tooltip { position:absolute; pointer-events:none; background:#0b0c10; color:var(--fg); border:1px solid #2b3242; border-radius:8px; padding:8px 10px; font-size:12px; opacity:0; transition:opacity .15s ease; max-width:260px; }
+
+    .hint { color:var(--muted); font-size:12px; margin-top:6px; }
+
+    .rank-label { fill:#6b7280; font-size:11px; }
   </style>
 </head>
 <body>
-<h1 style="text-align:center;">CTF Writeups — Hilbert Timeline</h1>
-<div id="viz"></div>
-<div class="tooltip" id="tip"></div>
+  <header>
+    <div class="controls">
+      <h1>CTF Writeups | Hasse Diagram</h1>
+      <div style="display:flex; align-items:center; gap:40px;">
+        <label>Min posts
+          <select id="minExtent">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+          </select>
+        </label>
+        <label>Max tags
+          <select id="maxTags">
+            <option value="999">∞</option>
+            <option value="4">4</option>
+            <option value="3">3</option>
+            <option value="2">2</option>
+          </select>
+        </label>
+        <label>Search posts
+          <input id="search" placeholder="title or tag" />
+        </label>
+      </div>
+    </div>
+    <div class="legend" id="legend"></div>
+  </header>
+
+  <div id="container">
+    <div id="vizwrap">
+      <svg id="viz"></svg>
+      <div class="tooltip" id="tooltip"></div>
+    </div>
+    <aside id="sidebar">
+      <h3 style="margin-top:4px">Selected Concept
+      <span id="selection" class="hint">Hover or click a node to see its posts.</span>
+      </h3>
+      <h3>Posts</h3>
+      <div id="posts"></div>
+    </aside>
+  </div>
 
 <script>
-// --- Example data (replace with posts.json from your repo)
-const posts = [
-  {slug:"a", title:"Buffer Overflow 101", date:"2024-05-02", category:"pwn"},
-  {slug:"b", title:"RSA Crack", date:"2024-06-15", category:"crypto"},
-  {slug:"c", title:"XSS in Login", date:"2024-07-01", category:"web"},
-  {slug:"d", title:"Stego Image", date:"2024-08-20", category:"forensics"},
-  {slug:"e", title:"Heap Exploit", date:"2024-09-12", category:"pwn"},
-  {slug:"f", title:"JWT None Attack", date:"2024-10-01", category:"web"},
-  {slug:"g", title:"SQLi Challenge", date:"2024-11-21", category:"web"},
-  {slug:"h", title:"Elliptic Curve", date:"2025-01-03", category:"crypto"}
+// ---- Demo data (replace with fetch('posts.json')) -----------------------------------------
+// Each post: {slug, title, date, category, tags:[...]}
+const demoPosts = [
+  {slug:"buffer-overflow-101", title:"Buffer Overflow 101", date:"2024-05-02", category:"pwn", tags:["pwn","stack","overflow","gdb"]},
+  {slug:"rsa-basic",           title:"RSA Basic",           date:"2024-06-15", category:"crypto", tags:["crypto","rsa","math"]},
+  {slug:"xss-login",           title:"XSS in Login",        date:"2024-07-01", category:"web", tags:["web","xss","dom"]},
+  {slug:"stego-flowers",       title:"Stego: Flowers",      date:"2024-08-20", category:"forensics", tags:["forensics","stego","images"]},
+  {slug:"heap-unlink",         title:"Heap Exploit: Unlink",date:"2024-09-12", category:"pwn", tags:["pwn","heap","glibc"]},
+  {slug:"jwt-none",            title:"JWT None Attack",     date:"2024-10-01", category:"web", tags:["web","jwt","auth"]},
+  {slug:"sqli-blind",          title:"Blind SQLi",         date:"2024-11-21", category:"web", tags:["web","sqli","time-based"]},
+  {slug:"ecc-intro",           title:"Elliptic Curve Intro",date:"2025-01-03", category:"crypto", tags:["crypto","ecc","math"]},
+  {slug:"log4j-rce",           title:"Log4j RCE",          date:"2025-03-12", category:"web", tags:["web","rce","java"]},
+  {slug:"aes-cbc-padding",     title:"AES CBC Padding Oracle", date:"2025-04-11", category:"crypto", tags:["crypto","aes","padding-oracle"]}
 ];
-// sort by date
-posts.sort((a,b)=>new Date(a.date)-new Date(b.date));
 
-// --- Hilbert curve mapping
-function hilbertXY(n, d) {
-  let x=0, y=0, rx, ry, t=d;
-  for (let s=1; s<n; s*=2) {
-    rx = 1 & (t/2);
-    ry = 1 & (t ^ rx);
-    [x,y] = rot(s,x,y,rx,ry);
-    x += s * rx;
-    y += s * ry;
-    t /= 4;
+const colorsByCategory = { web: "#60a5fa", crypto: "#a3e635", pwn: "#f472b6", forensics: "#f59e0b", misc: "#c084fc" };
+
+init();
+
+async function init(){
+  let posts;
+  try {
+    // Try loading from posts.json; fall back to demo data
+    // const res = await fetch('posts.json');
+    // if(res.ok){ posts = await res.json(); }
+    posts = demoPosts;
+  } catch(e){ posts = demoPosts; }
+
+  posts.sort((a,b) => new Date(a.date) - new Date(b.date));
+
+  const legend = document.getElementById('legend');
+  legend.innerHTML = Object.entries(colorsByCategory).map(([k,v])=>`<div class="legend-item"><span class="legend-swatch" style="background:${v}"></span>${k}</div>`).join('');
+
+  const state = { posts, concepts:[], edges:[], ranks:[], filtered:posts };
+
+  const els = {
+    minExtent: document.getElementById('minExtent'),
+    maxTags: document.getElementById('maxTags'),
+    search: document.getElementById('search'),
+    posts: document.getElementById('posts'),
+    tip: document.getElementById('tooltip'),
+    sel: document.getElementById('selection'),
+    svg: d3.select('#viz')
+  };
+
+  function powerSet(arr){
+    const res=[[]];
+    for(const x of arr){
+      const len = res.length;
+      for(let i=0;i<len;i++){ res.push(res[i].concat([x])); }
+    }
+    return res;
   }
-  return [x,y];
-}
-function rot(n,x,y,rx,ry){
-  if(ry===0){
-    if(rx===1){ x=n-1-x; y=n-1-y; }
-    return [y,x];
+
+  function intersectTagSets(postIdx){
+    if(postIdx.length===0) return new Set();
+    let s = new Set(state.posts[postIdx[0]].tags);
+    for(let i=1;i<postIdx.length;i++){
+      s = new Set([...s].filter(t => state.posts[postIdx[i]].tags.includes(t)));
+    }
+    return s;
   }
-  return [x,y];
-}
 
-// --- Build grid
-const N = posts.length;
-const order = Math.ceil(Math.log2(Math.ceil(Math.sqrt(N))));
-const size = 2**order;
-const grid = document.getElementById('viz');
-grid.style.gridTemplateColumns = `repeat(${size}, 24px)`;
+  // Compute closed concepts using FCA-style closure from tag subsets
+  function computeConcepts(){
+    const posts = state.filtered;
+    const byIdx = new Map(posts.map((p,i)=>[i,p]));
+    const tagUniverse = [...new Set(posts.flatMap(p=>p.tags))];
 
-const colors = {web:"#ff6f61", crypto:"#6fa8dc", pwn:"#93c47d", forensics:"#e06666"};
+    const conceptMap = new Map();
 
-posts.forEach((post,i)=>{
-  const [x,y] = hilbertXY(size, i);
-  const cell = document.createElement("div");
-  cell.className = "cell";
-  cell.style.background = colors[post.category]||"#888";
-  cell.style.gridColumnStart = x+1;
-  cell.style.gridRowStart = y+1;
-  cell.dataset.title = post.title;
-  cell.dataset.date = post.date;
-  cell.onclick = ()=>location.href = post.slug+".html";
-  grid.appendChild(cell);
-});
+    const tagSubsets = new Set(["" ]);
+    for(const p of posts){
+      const ps = powerSet(p.tags).map(s=>s.sort().join('\u0001'));
+      ps.forEach(k=>tagSubsets.add(k));
+    }
 
-// --- Tooltip
-const tip = document.getElementById('tip');
-document.querySelectorAll('.cell').forEach(c=>{
-  c.addEventListener('mousemove', e=>{
-    tip.style.opacity=1;
-    tip.style.left=(e.pageX+10)+"px";
-    tip.style.top=(e.pageY+10)+"px";
-    tip.innerHTML = `<b>${c.dataset.title}</b><br>${c.dataset.date}`;
+    // Build inverted index tag -> post indices
+    const postsByTag = new Map();
+    tagUniverse.forEach(t=>postsByTag.set(t, new Set()));
+    posts.forEach((p,i)=>p.tags.forEach(t=>postsByTag.get(t).add(i)));
+
+    function extentOf(tagSet){
+      if(tagSet.size===0) return new Set(posts.map((_,i)=>i));
+      let e = null;
+      for(const t of tagSet){
+        const s = postsByTag.get(t) || new Set();
+        e = e? new Set([...e].filter(x=>s.has(x))) : new Set(s);
+      }
+      return e || new Set();
+    }
+
+    for(const key of tagSubsets){
+      const subset = key? new Set(key.split('\u0001')) : new Set();
+      const E = extentOf(subset);
+      const I = intersectTagSets([...E]);
+      const Ikey = [...I].sort().join('\u0001');
+      if(!conceptMap.has(Ikey)){
+        const Eclosed = extentOf(I);
+        conceptMap.set(Ikey, { intent:I, extent:Eclosed });
+      }
+    }
+
+    // Filter by controls
+    const minExtent = +els.minExtent.value;
+    const maxTags = +els.maxTags.value;
+    let concepts = [...conceptMap.values()].filter(c=>c.extent.size>=minExtent && c.intent.size <= maxTags);
+
+    // Build Hasse edges by intent inclusion minimality
+    // Order concepts by |intent|
+    concepts.sort((a,b)=> a.intent.size - b.intent.size);
+    const nodes = concepts.map((c,idx)=> ({ id: idx, intent: c.intent, extent: c.extent }));
+
+    const isSubset = (A,B)=>{
+      for(const x of A) if(!B.has(x)) return false; return true;
+    };
+
+    // Precompute subset relationships
+    const edges = [];
+    for(let i=0;i<nodes.length;i++){
+      for(let j=0;j<nodes.length;j++){
+        if(i===j) continue;
+        const A = nodes[i], B = nodes[j];
+        if(A.intent.size < B.intent.size && isSubset(A.intent, B.intent)){
+          // check cover: no C with A ⊂ C ⊂ B
+          let covered = false;
+          for(let k=0;k<nodes.length;k++) if(k!==i && k!==j){
+            const C = nodes[k];
+            if(A.intent.size < C.intent.size && C.intent.size < B.intent.size && isSubset(A.intent, C.intent) && isSubset(C.intent, B.intent)){
+              covered = true; break;
+            }
+          }
+          if(!covered) edges.push({ source:i, target:j });
+        }
+      }
+    }
+
+    // Ranks by intent
+    const maxRank = Math.max(0,...nodes.map(n=>n.intent.size));
+    const ranks = Array.from({length:maxRank+1}, ()=>[]);
+    nodes.forEach(n=>ranks[n.intent.size].push(n));
+
+    state.concepts = nodes;
+    state.edges = edges;
+    state.ranks = ranks;
+  }
+
+  function formatIntent(set){
+    const arr = [...set];
+    return arr.length? arr.join(', ') : 'Root';
+  }
+
+  function render(){
+    computeConcepts();
+
+    const width = document.getElementById('vizwrap').clientWidth;
+    const height = document.getElementById('vizwrap').clientHeight;
+
+    els.svg.selectAll('*').remove();
+
+    const svg = els.svg
+      .attr('width', width)
+      .attr('height', height);
+
+    const g = svg.append('g');
+    svg.call(d3.zoom().scaleExtent([0.4, 4]).on('zoom', (ev)=>{
+      g.attr('transform', ev.transform);
+    }));
+
+    const layerGap = Math.max(120, height / Math.max(2, state.ranks.length));
+
+    // Assign positions
+    const positions = new Map();
+    state.ranks.forEach((layer, rank)=>{
+      const y = 80 + rank * layerGap;
+      const count = layer.length;
+      layer.forEach((node, idx)=>{
+        const x = 80 + (idx + 1) * ( (width-160) / (count+1) );
+        positions.set(node.id, {x,y});
+      });
+    });
+
+    // Edges
+    g.append('g').selectAll('path')
+      .data(state.edges)
+      .enter()
+      .append('path')
+      .attr('d', d=>{
+        const s = positions.get(d.source), t = positions.get(d.target);
+        const midY = (s.y + t.y)/2;
+        return `M${s.x},${s.y} C ${s.x},${midY} ${t.x},${midY} ${t.x},${t.y}`;
+      })
+      .attr('fill','none')
+      .attr('stroke', 'var(--edge)')
+      .attr('stroke-width', 1.2)
+      .attr('opacity', .8);
+
+    // Node group
+    const nodeG = g.append('g').selectAll('g.node')
+      .data(state.concepts)
+      .enter()
+      .append('g')
+      .attr('class','node')
+      .attr('transform', d=>{
+        const p = positions.get(d.id); return `translate(${p.x},${p.y})`;
+      });
+
+    // Node visuals
+    nodeG.append('circle')
+      .attr('r', d=> 12 + 3*Math.sqrt(d.extent.size))
+      .attr('fill', 'var(--node)')
+      .attr('stroke', '#2b3242')
+      .attr('stroke-width', 1.5)
+      .attr('opacity', .95);
+
+    nodeG.append('text')
+      .attr('text-anchor', 'middle')
+      .attr('dy', -24)
+      .attr('fill', '#cbd5e1')
+      .attr('font-size', 11)
+      .text(d=> formatIntent(d.intent));
+
+    nodeG.append('text')
+      .attr('text-anchor', 'middle')
+      .attr('dy', 30)
+      .attr('fill', '#94a3b8')
+      .attr('font-size', 11)
+      .text(d=> `${d.extent.size} post${d.extent.size===1?'':'s'}`);
+
+    // Rank labels
+    g.append('g').selectAll('text.rank')
+      .data(state.ranks.map((_,i)=>i))
+      .enter()
+      .append('text')
+      .attr('class','rank-label')
+      .attr('x', 20)
+      .attr('y', r=> positions.get(state.ranks[r][0]?.id || 0)?.y || (height - 80 - r*layerGap))
+      .text(r=> `Level ${r}`);
+
+    // Interactions
+    nodeG.on('mousemove', (event,d)=>{
+      const posts = [...d.extent].map(i=>state.filtered[i]);
+      els.tip.style.opacity = 1;
+      els.tip.style.left = (event.pageX + 12) + 'px';
+      els.tip.style.top = (event.pageY + 12) + 'px';
+      els.tip.innerHTML = `<b>Intent</b>: ${formatIntent(d.intent)}<br/><b>Posts</b>: ${posts.length}`;
+    }).on('mouseleave', ()=>{
+      els.tip.style.opacity = 0;
+    }).on('click', (event,d)=>{
+      const posts = [...d.extent].map(i=>state.filtered[i]);
+      renderPosts(posts, formatIntent(d.intent));
+    });
+
+    // Default selection: top concept (rank 0)
+    const top = state.concepts.find(c=>c.intent.size===0) || state.concepts[0];
+    if(top){ renderPosts([...top.extent].map(i=>state.filtered[i]), formatIntent(top.intent)); }
+  }
+
+  function renderPosts(list, intentLabel){
+    const catswatch = list[0] ? (colorsByCategory[list[0].category] || '#94a3b8') : '#94a3b8';
+    els.sel.innerHTML = `<span class="intent-label" style="background:${catswatch}22; color:${catswatch}; border:1px solid ${catswatch}55;"> ${intentLabel} </span>`;
+    els.posts.innerHTML = list.map(p=>{
+      const catswatch = colorsByCategory[p.category] || '#94a3b8';
+      const tagBadges = (p.tags||[]).map(t=>`<span class="badge">${t}</span>`).join(' ');
+      return `<div class="post">
+        <h4><a href="${p.slug}.html" style="color:${catswatch}; text-decoration:none">${p.title}</a></h4>
+        <div class="meta"><span>${new Date(p.date).toISOString().slice(0,10)}</span><span class="badge" style="background:${catswatch}22; border-color:${catswatch}55">${p.category}</span></div>
+        <div style="margin-top:6px">${tagBadges}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function applySearch(){
+    const q = els.search.value.trim().toLowerCase();
+    if(!q){ state.filtered = state.posts; render(); return; }
+    state.filtered = state.posts.filter(p=>
+      (p.title||'').toLowerCase().includes(q) ||
+      (p.tags||[]).some(t=>t.toLowerCase().includes(q))
+    );
+    render();
+  }
+
+  els.minExtent.addEventListener('change', render);
+  els.maxTags.addEventListener('change', render);
+  els.search.addEventListener('input', ()=>{
+    clearTimeout(window.__searchTimer);
+    window.__searchTimer = setTimeout(applySearch, 200);
   });
-  c.addEventListener('mouseleave', ()=>tip.style.opacity=0);
-});
+
+  // initial render
+  render();
+
+  // handle resize
+  window.addEventListener('resize', ()=>{
+    render();
+  });
+}
 </script>
 </body>
 </html>
