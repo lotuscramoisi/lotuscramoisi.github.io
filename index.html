@@ -1,62 +1,106 @@
 <!DOCTYPE html>
-<head></head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CTF Competition Writeups</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #1e1e1e;
-            color: #f0f0f0;
-            margin: 0;
-            padding: 20px;
-        }
-        .header {
-            text-align: center;
-            padding: 50px;
-            background-color: #333;
-            color: white;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #2a2a2a;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        h1, h2 {
-            color: #f0f0f0;
-        }
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        ul li {
-            margin: 10px 0;
-        }
-        ul li a {
-            text-decoration: none;
-            color: #9cdbff;
-            font-size: 1.2rem;
-        }
-        ul li a:hover {
-            text-decoration: underline;
-        }
-    </style>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CTF Writeup Timeline (Hilbert Curve)</title>
+  <style>
+    body { font-family: sans-serif; background: #111; color: #eee; }
+    #viz { display: grid; justify-content: center; margin: 2rem auto; }
+    .cell {
+      width: 22px; height: 22px;
+      margin: 1px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .cell:hover {
+      transform: scale(1.4);
+      z-index: 5;
+    }
+    .tooltip {
+      position: absolute;
+      background: #222; color: #fff;
+      padding: 4px 8px; border-radius: 6px;
+      font-size: 12px;
+      pointer-events: none;
+      opacity: 0; transition: opacity 0.2s;
+    }
+  </style>
 </head>
-<html>
-    <div class="header">
-        <h1>CTF Write-ups</h1>
-    </div>
+<body>
+<h1 style="text-align:center;">CTF Writeups — Hilbert Timeline</h1>
+<div id="viz"></div>
+<div class="tooltip" id="tip"></div>
 
-    <div class="container">
-        <h2>Categories</h2>
-        <ul>
-            <!-- <li><a href="Crypto/index.html">Cryptography</a></li> -->
-            <li><a href="Forensic/index.html">Forensics</a></li>
-            <li><a href="Android/index.html">Android</a></li>
-            <li><a href="Reverse/index.html">Reversing</a></li>
-        </ul>
-    </div>
+<script>
+// --- Example data (replace with posts.json from your repo)
+const posts = [
+  {slug:"a", title:"Buffer Overflow 101", date:"2024-05-02", category:"pwn"},
+  {slug:"b", title:"RSA Crack", date:"2024-06-15", category:"crypto"},
+  {slug:"c", title:"XSS in Login", date:"2024-07-01", category:"web"},
+  {slug:"d", title:"Stego Image", date:"2024-08-20", category:"forensics"},
+  {slug:"e", title:"Heap Exploit", date:"2024-09-12", category:"pwn"},
+  {slug:"f", title:"JWT None Attack", date:"2024-10-01", category:"web"},
+  {slug:"g", title:"SQLi Challenge", date:"2024-11-21", category:"web"},
+  {slug:"h", title:"Elliptic Curve", date:"2025-01-03", category:"crypto"}
+];
+// sort by date
+posts.sort((a,b)=>new Date(a.date)-new Date(b.date));
+
+// --- Hilbert curve mapping
+function hilbertXY(n, d) {
+  let x=0, y=0, rx, ry, t=d;
+  for (let s=1; s<n; s*=2) {
+    rx = 1 & (t/2);
+    ry = 1 & (t ^ rx);
+    [x,y] = rot(s,x,y,rx,ry);
+    x += s * rx;
+    y += s * ry;
+    t /= 4;
+  }
+  return [x,y];
+}
+function rot(n,x,y,rx,ry){
+  if(ry===0){
+    if(rx===1){ x=n-1-x; y=n-1-y; }
+    return [y,x];
+  }
+  return [x,y];
+}
+
+// --- Build grid
+const N = posts.length;
+const order = Math.ceil(Math.log2(Math.ceil(Math.sqrt(N))));
+const size = 2**order;
+const grid = document.getElementById('viz');
+grid.style.gridTemplateColumns = `repeat(${size}, 24px)`;
+
+const colors = {web:"#ff6f61", crypto:"#6fa8dc", pwn:"#93c47d", forensics:"#e06666"};
+
+posts.forEach((post,i)=>{
+  const [x,y] = hilbertXY(size, i);
+  const cell = document.createElement("div");
+  cell.className = "cell";
+  cell.style.background = colors[post.category]||"#888";
+  cell.style.gridColumnStart = x+1;
+  cell.style.gridRowStart = y+1;
+  cell.dataset.title = post.title;
+  cell.dataset.date = post.date;
+  cell.onclick = ()=>location.href = post.slug+".html";
+  grid.appendChild(cell);
+});
+
+// --- Tooltip
+const tip = document.getElementById('tip');
+document.querySelectorAll('.cell').forEach(c=>{
+  c.addEventListener('mousemove', e=>{
+    tip.style.opacity=1;
+    tip.style.left=(e.pageX+10)+"px";
+    tip.style.top=(e.pageY+10)+"px";
+    tip.innerHTML = `<b>${c.dataset.title}</b><br>${c.dataset.date}`;
+  });
+  c.addEventListener('mouseleave', ()=>tip.style.opacity=0);
+});
+</script>
+</body>
 </html>
