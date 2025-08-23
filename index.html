@@ -4,10 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CTF Writeups | Hasse Diagram</title>
-  <script src="assets/d3.min.js"></script>
+  <script src="assets/js/d3.min.js"></script>
   <style>
-    :root{ --bg:#0e0f13; --fg:#e6e6e6; --muted:#9aa0a6; --accent:#7dd3fc; --edge:#3b4252; --node:#a78bfa; --badge:#1f2937; }
-    *{ box-sizing: border-box; }
+    :root{ --bg:#0e0f13; --fg:#e6e6e6; --muted:#9aa0a6; --accent:#7dd3fc; --edge:#3b4252; --node:#a78bfa; --badge:#1f2937; } *{ box-sizing: border-box; overflow: hidden;}
     html, body { height: 100%; }
     body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial; background: var(--bg); color: var(--fg); }
     header { padding: 16px 20px; border-bottom: 1px solid #1f2430; display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
@@ -21,8 +20,31 @@
     #container { display:grid; grid-template-columns: 1fr 400px; gap: 8px; height: calc(100% - 62px); }
     #vizwrap { position: relative; }
     #viz { width: 100%; height: 100%; }
-    #sidebar { border-left:1px solid #1f2430; padding:12px; overflow:auto; }
+    #sidebar { border-left:1px solid #1f2430; padding:12px; overflow-x: hidden; overflow:scroll;  scrollbar-width: thin;  scrollbar-color: rgba(125, 211, 252, 0.2) var(--bg); }
+    #sidebar::-webkit-scrollbar {
+    width: 6px; 
+    }
 
+    #sidebar::-webkit-scrollbar-track {
+        background: transparent; 
+    }
+
+    #sidebar::-webkit-scrollbar-thumb {
+        background-color: transparent; 
+        border-radius: 3px;
+        transition: background-color 0.3s;
+    }
+
+    #sidebar::-webkit-scrollbar-thumb {
+        background-color: rgba(125, 211, 252, 0.2); 
+        border-radius: 3px;
+        transition: background-color 0.3s, box-shadow 0.3s;
+    }
+
+    #sidebar:hover::-webkit-scrollbar-thumb {
+        background-color: var(--accent);
+        box-shadow: 0 0 6px var(--accent); 
+    }
     .post{ padding:14px; border:1pxsolid#2b3242; border-radius:12px; margin-bottom:12px; background:#181b22; box-shadow:0 2px 6px rgba(0,0,0,0.35); transition:transform .15 sease;}
     .post:hover { transform: translateY(-2px); }
     .post h4 { margin:0 0 6px 0; font-size:14px; }
@@ -72,23 +94,22 @@
       <div class="tooltip" id="tooltip"></div>
     </div>
     <aside id="sidebar">
-      <h3 style="margin-top:4px">Selected Concept
-      <span id="selection" class="hint">Hover or click a node to see its posts.</span>
-      </h3>
+      <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 4px;">
+        <h3 style="margin: 0;">Selected Concept: </h3>
+        <span id="selection" class="hint" style="margin-bottom: 6px;">Hover or click a node to see its posts.</span>
+      </div>
       <h3>Posts</h3>
       <div id="posts"></div>
     </aside>
   </div>
 
 <script>
-// ---- Demo data (replace with fetch('posts.json')) -----------------------------------------
-// Each post: {slug, title, date, category, tags:[...]}
 const demoPosts = [
-  {slug:"buffer-overflow-101", title:"Buffer Overflow 101", date:"2024-05-02", category:"pwn", tags:["pwn","stack","overflow","gdb"]},
+  {slug:"FireintheBaseCamp",   title:"Fire in the Base Camp", date:"2024-05-02", category:"mobile", tags:["forensic","firebase"]},
   {slug:"rsa-basic",           title:"RSA Basic",           date:"2024-06-15", category:"crypto", tags:["crypto","rsa","math"]},
   {slug:"xss-login",           title:"XSS in Login",        date:"2024-07-01", category:"web", tags:["web","xss","dom"]},
-  {slug:"stego-flowers",       title:"Stego: Flowers",      date:"2024-08-20", category:"forensics", tags:["forensics","stego","images"]},
-  {slug:"heap-unlink",         title:"Heap Exploit: Unlink",date:"2024-09-12", category:"pwn", tags:["pwn","heap","glibc"]},
+  {slug:"stego-flowers",       title:"Stego: Flowers",      date:"2024-08-20", category:"forensic", tags:["forensic","stego","images"]},
+  {slug:"heap-unlink",         title:"Heap Exploit: Unlink",date:"2024-09-12", category:"mobile", tags:["mobile","heap","glibc"]},
   {slug:"jwt-none",            title:"JWT None Attack",     date:"2024-10-01", category:"web", tags:["web","jwt","auth"]},
   {slug:"sqli-blind",          title:"Blind SQLi",         date:"2024-11-21", category:"web", tags:["web","sqli","time-based"]},
   {slug:"ecc-intro",           title:"Elliptic Curve Intro",date:"2025-01-03", category:"crypto", tags:["crypto","ecc","math"]},
@@ -96,20 +117,17 @@ const demoPosts = [
   {slug:"aes-cbc-padding",     title:"AES CBC Padding Oracle", date:"2025-04-11", category:"crypto", tags:["crypto","aes","padding-oracle"]}
 ];
 
-const colorsByCategory = { web: "#60a5fa", crypto: "#a3e635", pwn: "#f472b6", forensics: "#f59e0b", misc: "#c084fc" };
+const colorsByCategory = { web: "#60a5fa", crypto: "#a3e635", mobile: "#f472b6", forensic: "#f59e0b", misc: "#c084fc" };
 
 init();
 
 async function init(){
   let posts;
   try {
-    // Try loading from posts.json; fall back to demo data
-    // const res = await fetch('posts.json');
-    // if(res.ok){ posts = await res.json(); }
     posts = demoPosts;
   } catch(e){ posts = demoPosts; }
 
-  posts.sort((a,b) => new Date(a.date) - new Date(b.date));
+  posts.sort((a,b) => new Date(b.date) - new Date(a.date));
 
   const legend = document.getElementById('legend');
   legend.innerHTML = Object.entries(colorsByCategory).map(([k,v])=>`<div class="legend-item"><span class="legend-swatch" style="background:${v}"></span>${k}</div>`).join('');
@@ -230,7 +248,7 @@ async function init(){
 
   function formatIntent(set){
     const arr = [...set];
-    return arr.length? arr.join(', ') : 'Root';
+    return arr.length? arr.join(', ') : 'ALL';
   }
 
   function render(){
@@ -288,10 +306,25 @@ async function init(){
         const p = positions.get(d.id); return `translate(${p.x},${p.y})`;
       });
 
+    state.concepts.forEach(c => {
+      if (!c.extent || c.extent.size === 0) {
+        c.color = '#94a3b8';
+
+      } else {
+        const counts = {};
+        [...c.extent].forEach(i => {
+          const cat = state.filtered[i].category;
+          counts[cat] = (counts[cat] || 0) + 1;
+        });
+        const mainCat = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][0];
+        c.color = colorsByCategory[mainCat] || '#94a3b8';
+      }
+    });
+
     // Node visuals
     nodeG.append('circle')
       .attr('r', d=> 12 + 3*Math.sqrt(d.extent.size))
-      .attr('fill', 'var(--node)')
+      .attr('fill', d => d.color)
       .attr('stroke', '#2b3242')
       .attr('stroke-width', 1.5)
       .attr('opacity', .95);
