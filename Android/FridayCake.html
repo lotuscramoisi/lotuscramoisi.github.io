@@ -2,12 +2,13 @@
 <html lang="en">
 <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.css" rel="stylesheet" />
 <script src="../assets/js/prism.js"></script>
-<script src="../assets/js/prism-python.min.js"></script>
+<script src="../assets/js/prism-javascript.min.js"></script>
+<script src="../assets/js/prism-bash.min.js"></script>
 
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CTF Writeup Template</title>
+<title>CTF Writeup</title>
 <style>
 :root {
   --bg:#0e0f13; --fg:#e6e6e6; --muted:#9aa0a6;
@@ -40,140 +41,74 @@ aside{border-left:1px solid #1f2430;padding:16px;overflow-y:auto;background:#111
 .code-copy:hover,.code-expand:hover{opacity:.7}
 .code-expand{transform:rotate(0deg)}
 .code-closed .code-expand{transform:rotate(-180deg)!important;transition:0.3s}
-
 </style>
 </head>
 <body>
 <header>
   <a href="../index.html" class="home-btn">Home</a>
-  <h1>RandomPixels</h1>
-  <div id="current-legend"><span class="badge">Reverse</span></div>
+  <h1>CTF Writeup</h1>
+  <div id="current-legend"><span class="badge">Mobile</span></div>
 </header>
 <div class="container">
   <main class="article-entry">
     <section>
-      Challenge done during IRONCTF
+      This is a medium difficulty challenge done during BrunnerCTF
       <h2>Introduction</h2>
-      <p>For this challenge, we are given a very small snipet of python code and an encrypted image. Source code:</p>
-    </section>
-    <section>
-      <div class="code-area">
-        <div class="code-figcaption">
-          <div class="code-left-wrap"><span class="code-lang">bash</span></div>
-          <div class="code-right-wrap"><span class="code-copy">Copy</span></div>
-        </div>
-        <pre><code class="language-python">import random, time, numpy
-from PIL import Image
-from secret import FLAG
-
-def randomize(img, seed):
-	random.seed(seed)
-	new_y = list(range(img.shape[0]))
-	new_x = list(range(img.shape[1]))
-	random.shuffle(new_y)
-	random.shuffle(new_x)
-
-	new = numpy.empty_like(img)
-	for i, y in enumerate(new_y):
-		for j, x in enumerate(new_x):
-			new[i][j] = img[y][x]
-	return numpy.array(new)
-
-
-if __name__ == "__main__":
-	with Image.open(FLAG) as f:
-		img = numpy.array(f)
-		out = randomize(img, int(time.time()))
-		image = Image.fromarray(out)
-		image.save("encrypted.png")</code></pre>
-      </div>
-    </section>
-
-    <section>
-      <p>The first intitution for reverse challenges is to check how the seed is created. In this case, it is based on the python time library.</p>
-      <div class="code-area">
-        <div class="code-figcaption">
-          <div class="code-left-wrap"><span class="code-lang">bash</span></div>
-          <div class="code-right-wrap"><span class="code-copy">Copy</span></div>
-        </div>
-        <pre><code> seed(int(time.time())) </code></pre>
-      </div>
-    </section>
-    <p>To unscramble the image, we need to determine when it was created to retrieve the original seed. To do this, I used 7z with the following command: </p>
-   <section>
-    
-      <div class="code-area">
-        <div class="code-figcaption">
-          <div class="code-left-wrap"><span class="code-lang">bash</span></div>
-          <div class="code-right-wrap"><span class="code-copy">Copy</span></div>
-        </div>
-        <pre><code> 7z l chal.zip
-  Path = chal.zip
-  Type = zip
-  Physical Size = 22367
-
-    Date      Time    Attr         Size   Compressed  Name
-  ------------------- ----- ------------ ------------  ------------------------
-  2024-09-29 14:18:22 .....          583          312  enc.py
-  2024-10-02 23:02:40 .....        22113        21683  encrypted.png
-  ------------------- ----- ------------ ------------  ------------------------
-  2024-10-02 23:02:40              22696        21995  2 files
-  </code></pre>
-      </div>
-    </section>
-    <p>Now that we have the time we can make a small script in oder to unscramble those pixels:</p>
-    <section>
-      <div class="code-area">
-        <div class="code-figcaption">
-          <div class="code-left-wrap"><span class="code-lang">bash</span></div>
-          <div class="code-right-wrap"><span class="code-copy">Copy</span></div>
-        </div>
-        <pre><code class="language-python">import random
-import numpy as np
-from PIL import Image
-import time
-from datetime import datetime
-
-def reverse_randomize(encrypted_img, seed):
-    random.seed(seed)
-    new_y = list(range(encrypted_img.shape[0]))
-    new_x = list(range(encrypted_img.shape[1]))
-    random.shuffle(new_y)
-    random.shuffle(new_x)
-
-    original = np.empty_like(encrypted_img)
-    
-    # Create a mapping of shuffled positions back to original positions
-    for i, y in enumerate(new_y):
-        for j, x in enumerate(new_x):
-            original[y][x] = encrypted_img[i][j]
-    
-    return original
-
-if __name__ == "__main__":
-    with Image.open("encrypted.png") as f:
-        encrypted_img = np.array(f)
-        
-        # Here we use the date found in the 7z for the encrypted png.
-        target_time_str = "2024-10-02 23:02:40"
-        target_time = datetime.strptime(target_time_str, "%Y-%m-%d %H:%M:%S")
-        seed = int(target_time.timestamp())
-        original_img = reverse_randomize(encrypted_img, seed)
-        image = Image.fromarray(original_img)
-        image.save("decrypted.png")
-
-  </code></pre>
-      </div>
-    </section>
-    And tadaaaammm we get an unscramble imaged that looks like a QrCode.
-    <section>
-      <h2>Conclusion</h2>
-      <p>Using the time function is very insecure for any form of encryption. We get a QRCode as our result and once scanned, it reveals the flag:</p>
         <div>
-            <img src="../assets/images/randomPixelsQRCode.JPG" alt="Random Pixels Solution">
+            <img src="../assets/images/FridayCakeIntro.PNG">
         </div>
-      <pre><code>ironCTF{p53ud0_r4nd0m_f0r_4_r3450n}</code></pre>
     </section>
+    <section>
+      <h2>Setup</h2>
+      <p>For mobile challenges, I usually decompile the APK with APKToolGUI and analyze the code using Jadx-gui.</p>
+      <p>Using this method I found that the MainActivity check if a certain string has been loaded in order to unlock a safe. </p>
+      <div>
+        <img src="../assets/images/FridayCakeMain.PNG">
+      </div>
+      <p>The string comes from the a method called NativeChecker and load the password of the application using System.loadLibrary("native-lib")</p>
+      <div>
+        <img src="../assets/images/FridayCakeFunction.PNG">
+      </div>
+      <h2>Exploit</h2>
+      <p>Because I don't want to transform this into a reverse challenge where I decompile the nativ-lib (And wanted to respect the challenge name). I will use frida to call the "getDecryptedFlag" function </p>
+      <p>If you have never use frida here are the small steps to have something working:</p>
+      <ol>
+        <li>Using Android Studio, create a running device (Tools/DeviceManager) and create a virtual device manager that DOESN'T have access to the playstore using the version of APK you want.</li>
+        <li>Once download and started, download the frida server for Android (server x84_64): https://github.com/frida/frida/releases</li>
+        <li>adb root</li>
+        <li>adb push frida-server-version /data/local/tmp/frida_server</li>
+        <li>Run using: ./frida-server-version &</li>
+      </ol>
+      <p>Using that, frida server will be running on the phone and we will be able to modify the behavior of the application.  </p>
+      <div>
+        <img src="../assets/images/FridayCakeAndroidStudio.png">
+      </div>
+      <p>Here is the small snipet of code that will retrive the password using the "getDecryptedFlag" function:</p>
+      <div class="code-area">
+        <div class="code-figcaption">
+          <div class="code-left-wrap"><span class="code-lang">JS</span></div>
+          <div class="code-right-wrap"><span class="code-copy">Copy</span></div>
+        </div>
+        <pre><code class="language-javascript">Java.perform(function () {
+    var NativeChecker = Java.use("dk.brunnerctf.fridaycake.NativeChecker");
+
+    var flag = NativeChecker.INSTANCE.value.getDecryptedFlag();
+    console.log("[*] getDecryptedFlag() returned: " + flag);
+});
+</code></pre>
+      </div>
+    </section>
+    <p>The small function call be called using the following:</p>
+    <div class="code-area">
+        <div class="code-figcaption">
+          <div class="code-left-wrap"><span class="code-lang">JS</span></div>
+          <div class="code-right-wrap"><span class="code-copy">Copy</span></div>
+        </div>
+        <pre><code class="language-bash">frida -U -f dk.brunnerctf.fridaycake -l hook.js</code></pre>
+      </div>
+    <div>
+        <img src="../assets/images/FridaCakeSolution.PNG">
+      </div>
   </main>
   <aside>
     <h3>Related Writeups</h3>
@@ -185,6 +120,7 @@ if __name__ == "__main__":
 </div>
 </body>
 </html>
+
 
 <script>
 document.querySelectorAll('.code-copy').forEach(btn => {
