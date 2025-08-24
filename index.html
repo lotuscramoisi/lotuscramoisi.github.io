@@ -87,10 +87,11 @@
   </div>
 
 <script>
+// Watchout for the date format it could break a lot of things, it is YYYY/MM/DD
 const demoPosts = [
-  {slug:"Android/FireintheBaseCamp",  title:"Fire in the Base Camp", date:"2024-06-10", category:"mobile", tags:["forensic","firebase"]},
-  {slug:"Reverse/randomPixels",       title:"Random pixels",        date:"2024-05-10", category:"reverse", tags:["reverse","seed"]},
-  {slug:"xss-login",                  title:"XSS in Login",        date:"2024-07-01", category:"web", tags:["web","xss","dom"]},
+  {slug:"Android/FireintheBaseCamp",  title:"Fire in the Base Camp", date:"2024-10-06", category:"mobile", tags:["mobile", "forensic","firebase"]},
+  {slug:"Reverse/randomPixels",       title:"Random pixels",        date:"2024-10-05", category:"reverse", tags:["reverse","seed"]},
+  {slug:"Forensic/calc",              title:"Strange Calc",         date:"2024-10-17", category:"forensic", tags:["forensic","malware","PE32"]},
   {slug:"stego-flowers",              title:"Stego: Flowers",      date:"2024-08-20", category:"forensic", tags:["forensic","stego","images"]},
   {slug:"heap-unlink",                title:"Heap Exploit: Unlink",date:"2024-09-12", category:"mobile", tags:["mobile","heap","glibc"]},
   {slug:"jwt-none",                   title:"JWT None Attack",     date:"2024-10-01", category:"web", tags:["web","jwt","auth"]},
@@ -144,6 +145,8 @@ async function init(){
     }
     return s;
   }
+
+
 
   // Compute closed concepts using FCA-style closure from tag subsets
   function computeConcepts(){

